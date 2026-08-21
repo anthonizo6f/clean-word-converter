@@ -1,6 +1,6 @@
 # AMENDMENTS — 同事回饋行為變更
 
-本次（2026‑08‑21）按同事對真實文件嘅回饋，改咗兩個視覺/語義行為。兩項都已經喺 `final_visual_test.py` 加咗斷言並全數通過。
+本次（2026‑08‑21）按同事對真實文件嘅回饋，改咗三個視覺/語義行為（連負數 bug 修正）。三項都已經喺 `final_visual_test.py` 加咗斷言並全數通過。
 
 ## Amendment 1 — 數值 0 顯示實數 `0`
 
@@ -35,6 +35,29 @@ DESCRIPTION_MERGE_PAIR = (0, 1)  # 描述欄配對，0-based（預設 A、B 兩�
 ### 點樣調校欄位
 
 喺 `clean_word_converter.py` 頂部改 `DESCRIPTION_MERGE_PAIR`（0‑based 欄 index）即可。例如改為第 2、3 欄：`DESCRIPTION_MERGE_PAIR = (1, 2)`。
+
+## Amendment 3 — 負數唔可以再變正數
+
+**問題**：部分負數喺轉換後被當成正數顯示。原因喺 `_fmt_number` 原先用 `f.strip().startswith("(")` 判斷「括號負數段」；但當負數段前面有貨幣符號（例：會計格式 `_($* #,##0.00_);_($* (#,##0.00);...` → 變成 `$ (#,##0.00)`）時，`(` 唔喺第一位 → 判定失敗 → 括號同負號被掟走，負數變返正數。
+
+**改法**（`clean_word_converter.py` → `_fmt_number`）：
+- 括號判別改為「負數段內**同時存在** `(` 同 `)`」
+- 之後掟走 `(`/`)` 同任何 `-`/`−`，最後：
+  - 括號段 → `(1,234.50)`
+  - 其他負數 → 一律落 `-`（就算 format 冇顯式負號，都唔允許「負數變正數」）
+
+```python
+neg_paren = ("(" in f and ")" in f)
+f = f.replace("(", "").replace(")", "").replace("-", "").replace("−", "")
+...
+if neg_paren:
+    return f"({out})"
+if v < 0:
+    return f"-{out}"
+return out
+```
+
+覆蓋三種情況：`$` 前綴括號段、普通括號段（`#,##0.00;(#,##0.00)`）、顯式負號段（`-0.00`）。
 
 ## 測試
 

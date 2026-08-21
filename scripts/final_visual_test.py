@@ -68,7 +68,11 @@ print("✅ 數值格式（零值 - / 負數括弧 / 千分位 / % / hidden 欄�
 acc = m._fmt_number(0, '_(* #,##0.00_);_(* (#,##0.00);_(* "-"??_)')
 assert acc == "0", f"零值應顯示實數 0（amendment 1），實得 {acc!r}"
 assert m._fmt_number(0, '#,##0;(#,##0);"-"') == "0"
-print("✅ 零值 Accounting dash → 實數 0（適合 tagging）")
+print("✅ 零值 Accounting dash → 實數 0（適合 tagging）")# 負數唔可以變正數（同事 amendment：舊版 $ 前綴括號負數段被忽略）
+assert m._fmt_number(-1234.5, '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)') == "(1,234.50)"
+assert m._fmt_number(-1234.5, '#,##0.00;(#,##0.00)') == "(1,234.50)"
+assert m._fmt_number(-1234.5, '#,##0.00;[Red]-#,##0.00') == "-1,234.50"
+print("✅ 負數括號段（$ 前綴）／顯式負號段：唔會再變正數")
 
 grid = [int(g.get(qn("w:w"))) for g in t0._tbl.tblGrid.findall(qn("w:gridCol"))]
 assert grid[0] > grid[2] > grid[1] and abs(grid[2] - grid[3]) <= 25 and sum(grid) > 7000

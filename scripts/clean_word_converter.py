@@ -280,8 +280,10 @@ def _fmt_number(v: float, fmt: str) -> str:
         f = re.sub(r"\[[^\]]*\]", "", pick)
         f = re.sub(r'"[^"]*"', "", f)
         f = re.sub(r"[_*].", "", f)
-        neg_paren = f.strip().startswith("(")
-        f = f.replace("(", "").replace(")", "")
+        # 負數段：( 只要存在於該段就係括號負數（可能畀 $ / ¥ 等前置），
+        # 唔可以淨係睇 f 開頭（舊版會令 $…(#,##0) 呢類負數變正數）。
+        neg_paren = ("(" in f and ")" in f)
+        f = f.replace("(", "").replace(")", "").replace("-", "").replace("−", "")
         av = abs(v)
         if "%" in f:
             dec = 0
@@ -308,7 +310,8 @@ def _fmt_number(v: float, fmt: str) -> str:
             return _fmt_general_number(v)
         if neg_paren:
             return f"({out})"
-        if v < 0 and len(sections) == 1:
+        if v < 0:
+            # 任何負數都唔可以變正數：冇括號就用負號前綴。
             return f"-{out}"
         return out
     except Exception:
