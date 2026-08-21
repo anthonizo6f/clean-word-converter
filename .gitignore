@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+assets/_fixtures_build/
+*_clean.docx
+conversion_report.*
+*.log

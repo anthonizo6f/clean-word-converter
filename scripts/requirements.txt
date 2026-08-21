@@ -1,0 +1,5 @@
+python-docx>=1.1.0
+olefile>=0.46
+pandas>=2.0.0
+openpyxl>=3.1.0
+xlrd>=2.0.1  # 舊式 .xls 嵌入物件（Excel 97-2003 / Excel.Sheet.8）
